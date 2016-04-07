@@ -9,4 +9,4 @@ library(geoR)
 library(sp)
 library(maptools)
 
-long = lon-360
+lon.new = lon-360
