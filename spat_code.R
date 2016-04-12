@@ -1,5 +1,5 @@
 rm(list = ls())
-setwd("Z:/Spatial Stats/final_proj")
+#setwd("Z:\Spatial_Project_2016\Spatial_Project_2016")
 load("predictors.Rdata")
 library(gstat)
 library(fields)
@@ -35,12 +35,21 @@ for(i in 1:551){
     rain.indicies = which(ptype[total.month.station] == "RA")
     ip.indicies = which(ptype[total.month.station] == "IP")
     fzra.indicies = which(ptype[total.month.station] == "FZRA")
-    
+    if(length(total.month.station)==0){
+      pi.snow[i,j] = 0
+      pi.rain[i,j] = 0
+      pi.ip[i,j] = 0
+      pi.fzra[i,j] = 0
+      
+    }
+    else{
     pi.snow[i,j] = (length(snow.indicies))/length(total.month.station)
     pi.rain[i,j] = (length(rain.indicies))/length(total.month.station)
     pi.ip[i,j] = (length(ip.indicies))/length(total.month.station)
     pi.fzra[i,j] = (length(fzra.indicies))/length(total.month.station)
-  }
+    }
+    
+    }
 }
 lon.new = lon-360
 xy=cbind(lon.new,lat)
@@ -73,22 +82,22 @@ for(i in 1:9){
   probs.snow = as.data.frame(cbind(lon.new, lat, pi.snow[,i]))
   coordinates(probs.snow) = ~lon.new +lat 
   vg.snow=variogram(pi.snow[,i]~1, data=probs.snow,cutoff=max(d)/2,width=4)
-  plot(vg.snow,pch=19,col=1,ylab=expression(paste("Estimated ",gamma(h),))) #change titles
+  plot(vg.snow,pch=19,col=1,ylab=expression(paste("Estimated ",gamma(h)))) #change titles
   
   probs.rain = as.data.frame(cbind(lon.new, lat, pi.rain[,i]))
   coordinates(probs.rain) = ~lon.new +lat 
   vg.rain=variogram(pi.rain[,i]~1, data=probs.rain,cutoff=max(d)/2,width=4)
-  plot(vg.rain,pch=19,col=1,ylab=expression(paste("Estimated ",gamma(h),)))
+  plot(vg.rain,pch=19,col=1,ylab=expression(paste("Estimated ",gamma(h))))
   
   probs.ip = as.data.frame(cbind(lon.new, lat, pi.ip[,i]))
   coordinates(probs.ip) = ~lon.new +lat 
   vg.ip=variogram(pi.ip[,i]~1, data=probs.ip,cutoff=max(d)/2,width=4)
-  plot(vg.ip,pch=19,col=1,ylab=expression(paste("Estimated ",gamma(h),)))
+  plot(vg.ip,pch=19,col=1,ylab=expression(paste("Estimated ",gamma(h))))
   
   probs.fzra = as.data.frame(cbind(lon.new, lat, pi.fzra[,i]))
   coordinates(probs.fzra) = ~lon.new +lat 
   vg.fzra=variogram(pi.fzra[,i]~1, data=probs.fzra,cutoff=max(d)/2,width=4)
-  plot(vg.fzra,pch=19,col=1,ylab=expression(paste("Estimated ",gamma(h),)))
+  plot(vg.fzra,pch=19,col=1,ylab=expression(paste("Estimated ",gamma(h))))
   dev.off()
 }
 
