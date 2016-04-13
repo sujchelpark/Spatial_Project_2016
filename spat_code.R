@@ -1,5 +1,5 @@
 rm(list = ls())
-#setwd("Z:\Spatial_Project_2016\Spatial_Project_2016")
+setwd("Z:/Spatial Stats/final_proj")
 load("predictors.Rdata")
 library(gstat)
 library(fields)
@@ -25,40 +25,35 @@ for(i in 1:551){
   for(j in 1:length(unique(months))){ 
     #j = month
     
-    m = sort(unique(months))[j]
+    #There are some missing probabilities for May and September, so we use the observations from April and October to record frequency:
+    if(j == 5){m = sort(unique(months))[j-1]}else{if(j == 6){m = sort(unique(months))[j+1]}else{m = sort(unique(months))[j]}}  
+    
     month.ind = which(months == m) 
     month.indicies = which(date.ind%in%month.ind)
     total.month.station = intersect(month.indicies, station.indicies)
-    
     
     snow.indicies = which(ptype[total.month.station] == "SN")
     rain.indicies = which(ptype[total.month.station] == "RA")
     ip.indicies = which(ptype[total.month.station] == "IP")
     fzra.indicies = which(ptype[total.month.station] == "FZRA")
-    if(length(total.month.station)==0){
-      pi.snow[i,j] = 0
-      pi.rain[i,j] = 0
-      pi.ip[i,j] = 0
-      pi.fzra[i,j] = 0
-      
-    }
-    else{
-    pi.snow[i,j] = (length(snow.indicies))/length(total.month.station)
-    pi.rain[i,j] = (length(rain.indicies))/length(total.month.station)
-    pi.ip[i,j] = (length(ip.indicies))/length(total.month.station)
-    pi.fzra[i,j] = (length(fzra.indicies))/length(total.month.station)
-    }
     
-    }
+    pi.snow[i,j] = length(snow.indicies)/length(total.month.station)
+    pi.rain[i,j] = length(rain.indicies)/length(total.month.station)
+    pi.ip[i,j] = length(ip.indicies)/length(total.month.station)
+    pi.fzra[i,j] = length(fzra.indicies)/length(total.month.station)
+
+  }
 }
+
 lon.new = lon-360
 xy=cbind(lon.new,lat)
 d=as.matrix(dist(xy))
 max(d)/3
 
 for(i in 1:9){
+
   m = sort(unique(months))[i]
-  pdf(file = paste("figures/Prior_plot", m,".pdf", sep=""))
+  pdf(file = paste("figures/Priors/prior", m,".pdf", sep="_"))
   par(mfrow = c(2,2))
   quilt.plot(lon.new, lat, pi.snow[,i],zlim = c(0,1),main = paste("Snow Probabilities, Month",m , sep = ""))
   map("world", add = T)
@@ -73,41 +68,58 @@ for(i in 1:9){
   map("state", add = T)
 
   quilt.plot(lon.new, lat, pi.fzra[,i], zlim = c(0,0.3),main = paste("Freezing Rain Probabilities, Month",m , sep = ""))
-  map("world", add = T)
+  map("world", add = T) 
   map("state", add = T)
   dev.off()
   
-  pdf(file = paste("figures/Semivariograms", m,".pdf", sep=""))
-  par(mfrow = c(2,2))
+  #somethng is wrong with this dev.off() thing. this works when we do it one by one, maybe we should just do it that way.
+  pdf(file = paste("figures/Semivariograms/snow_", m,".pdf", sep=""))
   probs.snow = as.data.frame(cbind(lon.new, lat, pi.snow[,i]))
-  coordinates(probs.snow) = ~lon.new +lat 
+  coordinates(probs.snow) = ~lon.new +lat
   vg.snow=variogram(pi.snow[,i]~1, data=probs.snow,cutoff=max(d)/2,width=4)
-  plot(vg.snow,pch=19,col=1,ylab=expression(paste("Estimated ",gamma(h)))) #change titles
-  
-  probs.rain = as.data.frame(cbind(lon.new, lat, pi.rain[,i]))
-  coordinates(probs.rain) = ~lon.new +lat 
-  vg.rain=variogram(pi.rain[,i]~1, data=probs.rain,cutoff=max(d)/2,width=4)
-  plot(vg.rain,pch=19,col=1,ylab=expression(paste("Estimated ",gamma(h))))
-  
-  probs.ip = as.data.frame(cbind(lon.new, lat, pi.ip[,i]))
-  coordinates(probs.ip) = ~lon.new +lat 
-  vg.ip=variogram(pi.ip[,i]~1, data=probs.ip,cutoff=max(d)/2,width=4)
-  plot(vg.ip,pch=19,col=1,ylab=expression(paste("Estimated ",gamma(h))))
-  
-  probs.fzra = as.data.frame(cbind(lon.new, lat, pi.fzra[,i]))
-  coordinates(probs.fzra) = ~lon.new +lat 
-  vg.fzra=variogram(pi.fzra[,i]~1, data=probs.fzra,cutoff=max(d)/2,width=4)
-  plot(vg.fzra,pch=19,col=1,ylab=expression(paste("Estimated ",gamma(h))))
+  plot(vg.snow,pch=19,col=1,ylab=expression(paste("Estimated ",gamma(h))), main = paste("Semivariogram for Snow month",m, sep = " ")) 
   dev.off()
+  
+  pdf(file = paste("figures/Semivariograms/rain_", m,".pdf", sep=""))
+  probs.rain = as.data.frame(cbind(lon.new, lat, pi.rain[,i]))
+  coordinates(probs.rain) = ~lon.new +lat
+  vg.rain=variogram(pi.rain[,i]~1, data=probs.rain,cutoff=max(d)/2,width=4)
+  plot(vg.rain,pch=19,col=1,ylab=expression(paste("Estimated ",gamma(h))), main = paste("Semivariogram for Rain month",m, sep = " "))
+  dev.off()
+  
+  pdf(file = paste("figures/Semivariograms/ip_", m,".pdf", sep=""))
+  probs.ip = as.data.frame(cbind(lon.new, lat, pi.ip[,i]))
+  coordinates(probs.ip) = ~lon.new +lat
+  vg.ip=variogram(pi.ip[,i]~1, data=probs.ip,cutoff=max(d)/2,width=4)
+  plot(vg.ip,pch=19,col=1,ylab=expression(paste("Estimated ",gamma(h))), main = paste("Semivariogram for Ice Pellets month",m, sep = " "))
+  dev.off()
+  
+  pdf(file = paste("figures/Semivariograms/fzra_", m,".pdf", sep=""))
+  probs.fzra = as.data.frame(cbind(lon.new, lat, pi.fzra[,i]))
+  coordinates(probs.fzra) = ~lon.new +lat
+  vg.fzra=variogram(pi.fzra[,i]~1, data=probs.fzra,cutoff=max(d)/2,width=4)
+  plot(vg.fzra,pch=19,col=1,ylab=expression(paste("Estimated ",gamma(h))), main = paste("Semivariogram for Freezing Rain month",m, sep = " "))
+  dev.off()
+  
+  print(i)
 }
 
-#try to build a semvg model for each
+i = 1 #just trying this outside the loop
+#Fit a wave model
+probs.snow = as.data.frame(cbind(lon.new, lat, pi.snow[,i]))
+coordinates(probs.snow) = ~lon.new +lat
+vg.snow=variogram(pi.snow[,i]~1, data=probs.snow,cutoff=max(d)/2,width=4)
+initial=vgm(psill=2.4,model="Wav",range=11)
+fit.vg=fit.variogram(vg.snow,initial,fit.method=2)
+plot(vg.snow, fit.vg, col = "black", pch = 19, lwd = 3, ylab=expression(paste("Estimated ",gamma(h))), main = "Wave Fit w/o Nugget")
+#so basically the plots aren't showing up ! but we would theoretically do this for every ptype and month
+
+
 #using the smvg model: krig at each station location (leave one out X val)
 #Thin plate spline 
-
 #compare krig & thin plate spline
-
 #go through and check probabilities (> 0, sum =1)
 
 
-
+###could be cool to plot all 4 ptype smvg's on one plot for each month:
+#https://stat.ethz.ch/pipermail/r-sig-geo/2009-September/006404.html
