@@ -114,43 +114,34 @@ plot.smvg.model=function(vg,param,model,new.h,no.nug,xlimit,ylimit){
   if(model=="linear"){
     title = "Linear Model"
     new=lin(param[1],param[2],new.h, no.nug)
-  }
-  if(model=="power"){
+  } else if(model=="power"){
     title = "Power Model"
     new=pow(param[1],param[2],param[3],new.h)
-  }
-  if(model=="linear bound"){
+  } else if(model=="linear bound"){
     title = "Linear Bound Model"
     new=lin.bound(param[1],param[2],param[3],new.h)
-  }
-  if(model=="circular"){
+  }else if(model=="circular"){
     title = "Circular Model"
     new=circular(param[1],param[2],param[3],new.h)
-  }
-  if(model=="spherical"){
+  } else if(model=="spherical"){
     title = "Spherical Model"
     new=spherical(param[1],param[2],param[3],new.h)
-  }
-  if(model=="rational quadratic"){
+  } else if(model=="rational quadratic"){
     title = "Rational Quadratic Model"
     new=rational.quadratic(param[1],param[2],param[3],new.h)
-  }
-  if(model=="exponential"){
+  } else if(model=="exponential"){
     title = "Exponential Model"
     new=exponential(param[1],param[2],param[3],new.h)
-  }
-  if(model=="gaussian"){
+  } else if(model=="gaussian"){
     title = "Gaussian Model"
     new=gauss(param[1],param[2],param[3],new.h)
-  }
-  if(model=="wave"){
+  } else if(model=="wave"){
     title = "Wave Model"
-    new=wave(param[1],param[2],param[3],new.h)
+   new=wave(param[1],param[2],param[3],new.h)
+  } else {
+    print("You typed an invalid model value")
+    title=NULL
   }
-  #else{
-    #print("You typed an invalid model value")
-    #title=NULL
-  #}
   new
   plot(vg[,2],vg[,3],pch=19,col=1,xlab="h",ylab=expression(paste("Estimated ",gamma(h))), main=title,xlim=xlimit,ylim=ylimit)
   lines(new.h,new,lwd=3)
