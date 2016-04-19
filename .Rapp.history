@@ -1,0 +1,22 @@
+###########################################################
+#Problem 2:  Convert Lat/Long to UTM coordinates#
+###########################################################
+#Load libraries#
+library(rgdal) # library needed to project coordinates from longitude/latitude#
+library(fields)#
+#
+data(ozone2)  #
+#
+dim(ozone2[[1]]) #Site locations in longitude and latitude as a 153X2 table  #
+ozone2$lon.lat#
+dim(ozone2[[2]]) #89X153 matrix of ozone values. Rows are days and columns are the sites.#
+#ozone2$y#
+#
+# view day 10 as spatial data#
+quilt.plot( ozone2$lon.lat, ozone2$y[10,])#
+US( add=TRUE, col="black")#
+title("Average Ozone in Long/Lat")#
+#
+lon.lat=ozone2$lon.lat#
+dim(lon.lat)#
+colnames(lon.lat)
