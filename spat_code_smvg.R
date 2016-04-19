@@ -118,11 +118,19 @@ plot(vg.snow, fit.vg, col = "black", pch = 19, lwd = 3, ylab=expression(paste("E
 #so basically the plots aren't showing up ! but we would theoretically do this for every ptype and month
 
 ######Building a function
-vg = vg.rain
+vg = vg.snow
 #Wave W/out a Nugget
 wave=function(t2,t3,h){
   t2*(1-(t3/h)*sin(h/t3))
 }
+
+spherical=function(t2,t3,h){
+  less.than=which(h<=t3)
+  more.than=which(h>t3)
+  fitted1=t2*(1.5*h[less.than]/t3-0.5*(h[less.than]/t3)^3)
+  fitted2=(t2)*rep(1,length(more.than))
+  return(c(fitted1,fitted2))
+}	
 
 WRSS.wave=function(thetas){
   #thetas = parameter vector
@@ -131,13 +139,20 @@ WRSS.wave=function(thetas){
   sum((vg[,1]/(gam.theta^2))*((vg[,3]-gam.theta)^2))
 }
 
-wave.initial=c(.15,20)	
-param.wave=optim(wave.initial, WRSS.wave)$par 
+WRSS.sph=function(thetas){
+  #thetas = parameter vector
+  
+  gam.theta=spherical(thetas[1],thetas[2],vg[,2])
+  sum((vg[,1]/(gam.theta^2))*((vg[,3]-gam.theta)^2))
+}
+
+sph.initial=c(.15,20)	
+param.sph=optim(sph.initial, WRSS.sph)$par 
 
 new.h=seq(0,50,len=1000)
 plot(vg.snow[,2],vg.snow[,3],pch=19,col=1,xlab = "distance", ylab=expression(paste("Estimated ",gamma(h),)),main="Wave Fit",ylim=c(0,0.2), xlim = c(0,50))
-new.wave=wave(param.wave[1],param.wave[2],new.h)
-lines(new.h,new.wave,lwd=3)
+new.sph=spherical(param.sph[1],param.sph[2],new.h)
+lines(new.h,new.sph,lwd=3)
 
 ######Look more at the fit before the sill, other models may work better
 
