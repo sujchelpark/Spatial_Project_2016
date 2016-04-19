@@ -127,18 +127,19 @@ for(i in 1:9){
   print(i)
 }
 
-initial.params = c(0.01,0.15,20)
-params = params.smvg.model(vg.snow,initial.params,"linear")
-
+initial.params = c(0,0.15,20)
+params=initial.params
+params = params.smvg.model(vg.rain,params,"wave",no.nug=T)
+params
 new.h=seq(0,50,len=1000)
-plot.smvg.model(vg.snow,initial.params,"linear",new.h,c(0,50),c(0,0.18))
+plot.smvg.model(vg.rain,params,model="wave",new.h,no.nug = T,c(0,50),c(0,0.18))
 
-choose.model(vg.snow,initial.params)
+choose.model(vg.rain,initial.params,no.nug=T)
 #just trying this outside the loop
 #Fit a wave model
 probs.snow = as.data.frame(cbind(lon.new, lat, pi.snow[,i]))
-coordinates(probs.snow) = ~lon.new +lat
-vg.snow=variogram(pi.snow[,i]~1, data=probs.snow,cutoff=max(d)/2,width=4)
+coordinates(probs.rain) = ~lon.new +lat
+vg.rain=variogram(pi.snow[,i]~1, data=probs.snow,cutoff=max(d)/2,width=4)
 initial=vgm(psill=2.4,model="Wav",range=11)
 fit.vg=fit.variogram(vg.snow,initial,fit.method=2)
 plot(vg.snow, fit.vg, col = "black", pch = 19, lwd = 3, ylab=expression(paste("Estimated ",gamma(h))), main = "Wave Fit w/o Nugget")

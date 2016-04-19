@@ -2,45 +2,45 @@
 ############### Spatial/Practicum Function File ##############
 ##############################################################
 
-lin=function(t1,t2,h){
-  if(t1==0){t2*h}
-  else{t1+t2*h}
+lin=function(t1,t2,h,no.nug){
+  if(no.nug==T){t2*h}
+  if(no.nug==F){t1+t2*h}
 }
 
 pow=function(t1,t2,t3,h){
   if(t1==0){t2*h^(t3)}
-  else{t1+t2*h^(t3)}
+  if(t1!=0){t1+t2*h^(t3)}
 }
 
 lin.bound=function(t1,t2,t3,h){
-  #if(h==0){0}
+  if(h==0){0}
   if(h<t3 & h>0){
     if(t1==0){(t2/t3)*h}
-    else{t1+(t2/t3)*h}
+    if(t1!=0){t1+(t2/t3)*h}
     }
-  else{
+  if(h>t3){
     if(t1==0){t2}
-    else{t1+t2}
+    if(t1!=0){t1+t2}
     }
 }
 
 circular=function(t1,t2,t3,h){
-  #if(h==0){0}
+  if(h==0){0}
   if(h<t3 & h>0){
     ifelse(t1==0,t2*(1-(2/pi)/cos(h/t3)+(2*h/(pi*t3))*sqrt(1-(h/t3)^2)),t1+t2*(1-(2/pi)/cos(h/t3)+(2*h/(pi*t3))*sqrt(1-(h/t3)^2)))
   }
-  else{
+  if(h>t3){
     ifelse(t1==0,t2,t1+t2)
     }
   
 }
 
 spherical=function(t1,t2,t3,h){
-  #if(h==0){0}
+  if(h==0){0}
   if(h<t3 & h>0){
     ifelse(t1==0,t2*((1.5*h/t3)-(0.5*(h/t3)^3)),t1+t2*((1.5*h/t3)-(0.5*(h/t3)^3)))
     }
-  else{
+  if(h>t3){
     ifelse(t1==0,t2,t1+t2)
     }
   
@@ -48,28 +48,28 @@ spherical=function(t1,t2,t3,h){
 
 rational.quadratic=function(t1,t2,t3,h){
   if(t1==0){t2*(h^2/(1+(h^2/t3)))}
-  else{t1+t2*(h^2/(1+(h^2/t3)))}
+  if(t1!=0){t1+t2*(h^2/(1+(h^2/t3)))}
 }
 
 exponential=function(t1,t2,t3,h){
   if(t1==0){t2*(1-exp(-h/t3))}
-  else{t1+t2*(1-exp(-h/t3))}
+  if(t1!=0){t1+t2*(1-exp(-h/t3))}
 }
 
 gauss=function(t1,t2,t3,h){
   if(t1==0){t2*(1-exp(-(h/t3)^2))}
-  else{t1+t2*(1-exp(-(h/t3)^2))}
+  if(t1!=0){t1+t2*(1-exp(-(h/t3)^2))}
 }
 
 wave=function(t1,t2,t3,h){
   if(t1==0){t2*(1-(t3/h)*sin(h/t3))}
-  else{t1+t2*(1-(t3/h)*sin(h/t3))}
+  if(t1!=0){t1+t2*(1-(t3/h)*sin(h/t3))}
 }
 
 # Calculates Weighted least squares for optim function
-WRSS=function(thetas,func,vg){
+WRSS=function(thetas,func,vg,no.nug){
   if(func=="linear"){
-    gam.theta=lin(thetas[1],thetas[2],vg[,2])
+    gam.theta=lin(thetas[1],thetas[2],vg[,2], no.nug==no.nug)
   }
   if(func=="power"){
     gam.theta=pow(thetas[1],thetas[2],thetas[3],vg[,2])
@@ -97,22 +97,23 @@ WRSS=function(thetas,func,vg){
   }
   #thetas = parameter vector
   #gam.theta=func(thetas[1],thetas[2],thetas[3],vg[,2])
-  sum((vg[,1]/(gam.theta^2))*((vg[,3]-gam.theta)^2))
+  return(sum((vg[,1]/(gam.theta^2))*((vg[,3]-gam.theta)^2)))
 }
 
 
 
 #Estimate the parameters
-params.smvg.model=function(smvg,initial.param,model){
-  param=optim(initial.param,WRSS,func=model,vg=smvg)$par
+params.smvg.model=function(smvg,initial.param,model,no.nug){
+  param=optim (initial.param,WRSS,func=model,vg=smvg, no.nug=no.nug)$par
   return(param)
 }
 
 # Plot the Semivariogram
-plot.smvg.model=function(vg,param,model,new.h,xlimit,ylimit){
+plot.smvg.model=function(vg,param,model,new.h,no.nug,xlimit,ylimit){
+  new=array()
   if(model=="linear"){
     title = "Linear Model"
-    new=lin(param[1],param[2],new.h)
+    new=lin(param[1],param[2],new.h, no.nug)
   }
   if(model=="power"){
     title = "Power Model"
@@ -146,19 +147,23 @@ plot.smvg.model=function(vg,param,model,new.h,xlimit,ylimit){
     title = "Wave Model"
     new=wave(param[1],param[2],param[3],new.h)
   }
-  
+  #else{
+    #print("You typed an invalid model value")
+    #title=NULL
+  #}
+  new
   plot(vg[,2],vg[,3],pch=19,col=1,xlab="h",ylab=expression(paste("Estimated ",gamma(h))), main=title,xlim=xlimit,ylim=ylimit)
   lines(new.h,new,lwd=3)
 }
 
-choose.model= function(smvg,initial.param){
+choose.model= function(smvg,initial.param,no.nug){
   bic.calc = array()
   K = length(smvg[,1])
-  mod=""
+  model=""
   param=c(0,0,0)
   
-  param.lin = params.smvg.model(smvg,initial.param,"linear")
-  bic.calc[1] = K*log(WRSS(param.lin,"linear",smvg)/K)+2*2
+  param.lin = params.smvg.model(smvg,initial.param,"linear",no.nug)
+  bic.calc[1] = K*log(WRSS(param.lin,"linear",smvg,no.nug)/K)+2*2
   
   param.pow=params.smvg.model(smvg,initial.param,"power")
   bic.calc[2] = K*log(WRSS(param.pow,"power",smvg)/K)+2*2
@@ -195,31 +200,31 @@ choose.model= function(smvg,initial.param){
     model="power"
     param=param.pow
   }
-  if(BIC==1){
+  if(BIC==3){
     model="linear bound"
     param=param.lin.bou
   }
-  if(BIC==1){
+  if(BIC==4){
     model="circular"
     param=param.circ
   }
-  if(BIC==1){
+  if(BIC==5){
     model="spherical"
     param=param.spher
   }
-  if(BIC==1){
+  if(BIC==6){
     model="rational quadratic"
     param=param.rat.quad
   }
-  if(BIC==1){
+  if(BIC==7){
     model="exponential"
     param=param.exp
   }
-  if(BIC==1){
+  if(BIC==8){
     model="gaussian"
     param=param.gaus
   }
-  if(BIC==1){
+  if(BIC==9){
     model="wave"
     param=param.wa
   }
