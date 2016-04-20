@@ -127,14 +127,40 @@ for(i in 1:9){
   print(i)
 }
 
-initial.params = c(0,0.15,20)
-params=initial.params
-params = params.smvg.model(vg.rain,params,"wave",no.nug=T)
-params
+initial.values = c(0.15,20)
+nugget=0
+param=optim(initial.values,WRSS,nug=nugget,func="wave",vg=vg.snow)$par
+param
 new.h=seq(0,50,len=1000)
-plot.smvg.model(vg.rain,params,model="wave",new.h,no.nug = T,c(0,50),c(0,0.18))
+plot.smvg.model(vg.snow,param,nug,model="wave",new.h,c(0,50),c(0,0.18))
 
-choose.model(vg.rain,initial.params,no.nug=T)
+
+initial.values = c(0.15,20)
+nugget=0
+param=optim(initial.values,WRSS,nug=nugget,func="wave",vg=vg.snow)$par
+param
+new.h=seq(0,50,len=1000)
+plot.smvg.model(vg.rain,param,nug,model="wave",new.h,c(0,50),c(0,0.18))
+
+
+initial.values = c(0.15,20)
+nugget=0.0002
+param=optim(initial.values,WRSS,nug=nugget,func="white",vg=vg.snow)$par
+param
+new.h=seq(0,50,len=1000)
+plot.smvg.model(vg.ip,param,nug,model="white",new.h,c(0,50),c(0,0.18))
+
+
+initial.values = c(0.15,20)
+nugget=0.0015
+param=optim(initial.values,WRSS,nug=nugget,func="white",vg=vg.snow)$par
+param
+new.h=seq(0,50,len=1000)
+plot.smvg.model(vg.fzra,param,nug,model="white",new.h,c(0,50),c(0,0.18))
+
+
+
+choose.model(vg.snow,initial.params,no.nug=T)
 #just trying this outside the loop
 #Fit a wave model
 probs.snow = as.data.frame(cbind(lon.new, lat, pi.snow[,i]))
