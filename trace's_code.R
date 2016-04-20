@@ -48,13 +48,14 @@ for(i in 1:551){
   }
 }
 
+
 lon.new = lon-360
 lon.lat=cbind(lon.new,lat)
 dim(lon.lat)
 
 
 #colnames(lon.lat)
-utm=project(lon.lat,proj="+proj=utm +zone=0016 ellps=WGS84")
+#utm=project(lon.lat,proj="+proj=utm +zone=0016 ellps=WGS84")
 #dim(utm)
 
 #par(mfrow=c(1,2))
@@ -67,8 +68,8 @@ max(GCD.latlon)/3
 d=GCD.latlon
 #plot(Euclid.utm);title('Euclidean Distance')
 #plot(GCD.latlon):title('Great Circle Distance')
-#xy=cbind(lon.new,lat)
-#d=as.matrix(dist(xy))
+xy=cbind(lon.new,lat)
+d=as.matrix(dist(xy))
 #max(d)/3
 
 for(i in 1:9){
@@ -99,28 +100,28 @@ for(i in 1:9){
   #pdf(file = paste("figures/Semivariograms/snow_", m,".pdf", sep=""))
   probs.snow = as.data.frame(cbind(lon.lat, pi.snow[,i]))
   coordinates(probs.snow) = ~lon.new +lat
-  vg.snow=variogram(pi.snow[,i]~1, data=probs.snow,cutoff=max(d)/2,width=2)
+  vg.snow=variogram(pi.snow[,i]~1, data=probs.snow,cutoff=max(d)/3,width=1)
   plot(vg.snow,pch=19,col=1,ylab=expression(paste("Estimated ",gamma(h))), main = paste("Snow in Month",m, sep = " ")) 
   #dev.off()
   
   #pdf(file = paste("figures/Semivariograms/rain_", m,".pdf", sep=""))
   probs.rain = as.data.frame(cbind(lon.new, lat, pi.rain[,i]))
   coordinates(probs.rain) = ~lon.new +lat
-  vg.rain=variogram(pi.rain[,i]~1, data=probs.rain,cutoff=max(d)/2,width=2) #cutoff=max(d)/2,width=2)
+  vg.rain=variogram(pi.rain[,i]~1, data=probs.rain,cutoff=max(d)/3,width=1) #cutoff=max(d)/2,width=2)
   plot(vg.rain,pch=19,col=1,ylab=expression(paste("Estimated ",gamma(h))), main = paste("Rain in Month",m, sep = " "))
   #dev.off()
   
   #pdf(file = paste("figures/Semivariograms/ip_", m,".pdf", sep=""))
   probs.ip = as.data.frame(cbind(lon.new, lat, pi.ip[,i]))
   coordinates(probs.ip) = ~lon.new +lat
-  vg.ip=variogram(pi.ip[,i]~1, data=probs.ip,cutoff=max(d)/2,width=2) #cutoff=max(d)/2,width=2)
+  vg.ip=variogram(pi.ip[,i]~1, data=probs.ip,cutoff=max(d)/3,width=1) #cutoff=max(d)/2,width=2)
   plot(vg.ip,pch=19,col=1,ylab=expression(paste("Estimated ",gamma(h))), main = paste("Ice Pellets in Month",m, sep = " "))
   #dev.off()
   
   #pdf(file = paste("figures/Semivariograms/fzra_", m,".pdf", sep=""))
   probs.fzra = as.data.frame(cbind(lon.new, lat, pi.fzra[,i]))
   coordinates(probs.fzra) = ~lon.new +lat
-  vg.fzra=variogram(pi.fzra[,i]~1, data=probs.fzra,cutoff=max(d)/2,width=2)
+  vg.fzra=variogram(pi.fzra[,i]~1, data=probs.fzra,cutoff=max(d)/3,width=1)
   plot(vg.fzra,pch=19,col=1,ylab=expression(paste("Estimated ",gamma(h))), main = paste("Freezing Rain in Month",m, sep = " "))
   dev.off()
   
@@ -128,35 +129,41 @@ for(i in 1:9){
 }
 
 initial.values = c(0.15,20)
-nugget=0
-param=optim(initial.values,WRSS,nug=nugget,func="wave",vg=vg.snow)$par
+nugget=0.01
+
+choose.model(vg.snow,initial.values, nugget)
+
+param=optim(c(initial.values,nugget),WRSS,func="gaussian",vg=vg.snow)$par
 param
 new.h=seq(0,50,len=1000)
-plot.smvg.model(vg.snow,param,nug,model="wave",new.h,c(0,50),c(0,0.18))
+plot.smvg.nug.model(vg.snow,param,model="gaussian",new.h,c(0,50),c(0,0.18))
 
 
 initial.values = c(0.15,20)
-nugget=0
-param=optim(initial.values,WRSS,nug=nugget,func="wave",vg=vg.snow)$par
+nugget=0.01
+choose.model(vg.rain,initial.values, nugget)
+param=optim(c(initial.values,nugget),WRSS,func="white",vg=vg.rain)$par
 param
 new.h=seq(0,50,len=1000)
-plot.smvg.model(vg.rain,param,nug,model="wave",new.h,c(0,50),c(0,0.18))
+plot.smvg.model(vg.rain,param,model="white",new.h,c(0,50),c(0,0.18))
 
 
 initial.values = c(0.15,20)
 nugget=0.0002
-param=optim(initial.values,WRSS,nug=nugget,func="white",vg=vg.snow)$par
+choose.model(vg.ip,initial.values, nugget)
+param=optim(c(initial.values,nugget),WRSS,func="white",vg=vg.ip)$par
 param
 new.h=seq(0,50,len=1000)
-plot.smvg.model(vg.ip,param,nug,model="white",new.h,c(0,50),c(0,0.18))
-
+plot.smvg.model(vg.ip,param,model="white",new.h,c(0,50),c(0,0.0025))
+vg.ip
 
 initial.values = c(0.15,20)
 nugget=0.0015
-param=optim(initial.values,WRSS,nug=nugget,func="white",vg=vg.snow)$par
+choose.model(vg.fzra,initial.values, nugget)
+param=optim(c(initial.values,nugget),WRSS,func="white",vg=vg.fzra)$par
 param
 new.h=seq(0,50,len=1000)
-plot.smvg.model(vg.fzra,param,nug,model="white",new.h,c(0,50),c(0,0.18))
+plot.smvg.model(vg.fzra,param,model="white",new.h,c(0,50),c(0,0.025))
 
 
 

@@ -72,33 +72,72 @@ for(i in 1:9){
   map("state", add = T)
   dev.off()
   
+  new.h=seq(0,50,len=1000)
   #somethng is wrong with this dev.off() thing. this works when we do it one by one, maybe we should just do it that way.
   pdf(file = paste("figures/Semivariograms/snow_", m,".pdf", sep=""))
   probs.snow = as.data.frame(cbind(lon.new, lat, pi.snow[,i]))
   coordinates(probs.snow) = ~lon.new +lat
-  vg.snow=variogram(pi.snow[,i]~1, data=probs.snow,cutoff=max(d)/2,width=4)
-  plot(vg.snow,pch=19,col=1,ylab=expression(paste("Estimated ",gamma(h))), main = paste("Semivariogram for Snow month",m, sep = " ")) 
+  vg.snow=variogram(pi.snow[,i]~1, data=probs.snow,cutoff=max(d)/3,width=1)
+  invals = c(0.15,20)
+  nugget=0.01
+  chosen=choose.model(vg.snow,invals,nugget)
+  mod=chosen[1]
+  values = c(as.numeric(chosen[2]),as.numeric(chosen[3]),as.numeric(chosen[4]))
+  no.nug=as.logical(chosen[6])
+  if(no.nug==TRUE){
+    plot.smvg.model(vg.snow,values,model=mod,new.h,c(0,50),c(0,0.18),main = "Snow")
+  }else {
+    plot.smvg.nug.model(vg.snow,values,model=mod,new.h,c(0,50),c(0,0.18), main="Snow")
+  }
+  #plot(vg.snow,pch=19,col=1,ylab=expression(paste("Estimated ",gamma(h))), main = paste("Semivariogram for Snow month",m, sep = " ")) 
   dev.off()
   
   pdf(file = paste("figures/Semivariograms/rain_", m,".pdf", sep=""))
-  probs.rain = as.data.frame(cbind(lon.new, lat, pi.rain[,i]))
-  coordinates(probs.rain) = ~lon.new +lat
-  vg.rain=variogram(pi.rain[,i]~1, data=probs.rain,cutoff=max(d)/2,width=4)
-  plot(vg.rain,pch=19,col=1,ylab=expression(paste("Estimated ",gamma(h))), main = paste("Semivariogram for Rain month",m, sep = " "))
+    probs.rain = as.data.frame(cbind(lon.new, lat, pi.rain[,i]))
+    coordinates(probs.rain) = ~lon.new +lat
+    vg.rain=variogram(pi.rain[,i]~1, data=probs.rain,cutoff=max(d)/3,width=1)
+    invals = c(0.15,20);nugget=0.01
+    chosen=choose.model(vg.rain,invals,nugget)
+    mod=chosen[1]
+    values = c(as.numeric(chosen[2]),as.numeric(chosen[3]),as.numeric(chosen[4]))
+    no.nug=as.logical(chosen[6])
+    if(no.nug==TRUE){
+      plot.smvg.model(vg.rain,values,model=mod,new.h,main = "Rain")
+    }else {
+      plot.smvg.nug.model(vg.rain,values,model=mod,new.h,main="Rain")
+    }
+  #plot(vg.rain,pch=19,col=1,ylab=expression(paste("Estimated ",gamma(h))), main = paste("Semivariogram for Rain month",m, sep = " "))
   dev.off()
   
   pdf(file = paste("figures/Semivariograms/ip_", m,".pdf", sep=""))
   probs.ip = as.data.frame(cbind(lon.new, lat, pi.ip[,i]))
   coordinates(probs.ip) = ~lon.new +lat
-  vg.ip=variogram(pi.ip[,i]~1, data=probs.ip,cutoff=max(d)/2,width=4)
-  plot(vg.ip,pch=19,col=1,ylab=expression(paste("Estimated ",gamma(h))), main = paste("Semivariogram for Ice Pellets month",m, sep = " "))
+  vg.ip=variogram(pi.ip[,i]~1, data=probs.ip,cutoff=max(d)/3,width=1)
+  invals = c(0.15,20);nugget=0.01
+  chosen=choose.model(vg.ip,invals,nugget)
+  mod=chosen[1]
+  values = c(as.numeric(chosen[2]),as.numeric(chosen[3]),as.numeric(chosen[4]))
+  no.nug=as.logical(chosen[6])
+  if(no.nug==TRUE){
+    plot.smvg.model(vg.ip,values,model=mod,new.h,main = "Pellets")
+  }else {
+    plot.smvg.nug.model(vg.ip,values,model=mod,new.h, main="Pellets")
+  }
+  #plot(vg.ip,pch=19,col=1,ylab=expression(paste("Estimated ",gamma(h))), main = paste("Semivariogram for Ice Pellets month",m, sep = " "))
   dev.off()
-  
-  pdf(file = paste("figures/Semivariograms/fzra_", m,".pdf", sep=""))
   probs.fzra = as.data.frame(cbind(lon.new, lat, pi.fzra[,i]))
-  coordinates(probs.fzra) = ~lon.new +lat
-  vg.fzra=variogram(pi.fzra[,i]~1, data=probs.fzra,cutoff=max(d)/2,width=4)
-  plot(vg.fzra,pch=19,col=1,ylab=expression(paste("Estimated ",gamma(h))), main = paste("Semivariogram for Freezing Rain month",m, sep = " "))
+  coordinates(probs.rain) = ~lon.new +lat
+  vg.fzra=variogram(pi.fzra[,i]~1, data=probs.fzra,cutoff=max(d)/3,width=1)
+  invals = c(0.15,20);nugget=0.01
+  chosen=choose.model(vg.fzra,invals,nugget)
+  mod=chosen[1]
+  values = c(as.numeric(chosen[2]),as.numeric(chosen[3]),as.numeric(chosen[4]))
+  no.nug=as.logical(chosen[6])
+  if(no.nug==TRUE){
+    plot.smvg.model(vg.fzra,values,model=mod,new.h,c(0,50),c(0,0.0025),main = "Freeze")
+  }else {
+    plot.smvg.nug.model(vg.fzra,values,model=mod,new.h,c(0,50),c(0,0.0025), main="Freeze")
+  }
   dev.off()
   
   print(i)
