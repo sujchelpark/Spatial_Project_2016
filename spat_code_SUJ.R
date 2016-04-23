@@ -56,6 +56,16 @@ no.nug.rain = array()
 no.nug.ip = array()
 no.nug.fzra = array()
 
+val.snow=matrix(0,9,3)
+val.rain=matrix(0,9,3)
+val.ip=matrix(0,9,3)
+val.fzra=matrix(0,9,3)
+
+mod.snow=array()
+mod.rain=array()
+mod.ip=array()
+mod.fzra=array()
+
 for(i in 1:9){
   
   m = sort(unique(months))[i]
@@ -91,9 +101,11 @@ for(i in 1:9){
   if(no.nug.snow[i]==TRUE){
     values = c(as.numeric(chosen[3]),as.numeric(chosen[4]))
     plot.smvg.model(vg.snow,values,model=mod,new.h,main = "Snow")
+    val.snow[i,2:3]=values
   }else {
     values = c(as.numeric(chosen[2]),as.numeric(chosen[3]),as.numeric(chosen[4]))
     plot.smvg.nug.model(vg.snow,values,model=mod,new.h, main="Snow") #xlim = c(0,50),ylim=c(0,0.18),
+    val.snow[i,]=values
   }
   #plot(vg.snow,pch=19,col=1,ylab=expression(paste("Estimated ",gamma(h))), main = paste("Semivariogram for Snow month",m, sep = " ")) 
   dev.off()
@@ -109,9 +121,11 @@ for(i in 1:9){
   if(no.nug.rain[i]==TRUE){
     values = c(as.numeric(chosen[3]),as.numeric(chosen[4]))
     plot.smvg.model(vg.rain,values,model=mod,new.h,main = "Rain")
+    val.rain[i,2:3]=values
   }else {
     values = c(as.numeric(chosen[2]),as.numeric(chosen[3]),as.numeric(chosen[4]))
     plot.smvg.nug.model(vg.rain,values,model=mod,new.h,main="Rain")
+    val.rain[i,]=values
   }
   #plot(vg.rain,pch=19,col=1,ylab=expression(paste("Estimated ",gamma(h))), main = paste("Semivariogram for Rain month",m, sep = " "))
   dev.off()
@@ -127,9 +141,11 @@ for(i in 1:9){
   if(no.nug.ip[i]==TRUE){
     values = c(as.numeric(chosen[3]),as.numeric(chosen[4]))
     plot.smvg.model(vg.ip,values,model=mod,new.h,main = "Pellets")
+    val.ip[i,2:3]=values
   }else {
     values = c(as.numeric(chosen[2]),as.numeric(chosen[3]),as.numeric(chosen[4]))
     plot.smvg.nug.model(vg.ip,values,model=mod,new.h, main="Pellets")
+    val.ip[i,]=values
   }
   #plot(vg.ip,pch=19,col=1,ylab=expression(paste("Estimated ",gamma(h))), main = paste("Semivariogram for Ice Pellets month",m, sep = " "))
   dev.off()
@@ -145,18 +161,51 @@ for(i in 1:9){
   if(no.nug.fzra[i]==TRUE){
     values = c(as.numeric(chosen[3]),as.numeric(chosen[4]))
     plot.smvg.model(vg.fzra,values,model=mod,new.h,main = "Freeze") #c(0,50),c(0,0.0025),
+    val.fzra[i,2:3]=values
   }else {
     values = c(as.numeric(chosen[2]),as.numeric(chosen[3]),as.numeric(chosen[4]))
     plot.smvg.nug.model(vg.fzra,values,model=mod,new.h,main="Freeze") #c(0,50),c(0,0.0025), 
+    val.fzra[i,]=values
   }
   dev.off()
   
   print(i)
 }
 
-#using the smvg model: krig at each station location (leave one out X val)
+#predictions: 4 matrices, same size as pi.snow...
+pred.snow = matrix(nrow= 551, ncol=9)
+pred.rain = matrix(nrow= 551, ncol=9)
+pred.ip = matrix(nrow= 551, ncol=9)
+pred.fzra = matrix(nrow= 551, ncol=9)
+i = 1 # do this in the loop for each ptype:
+#no nug:
+for(j in 1:551){
+  j=1
+  obs = pi.snow[j,i]
+  obs = as.data.frame(c(lon.new[j], lat[j], obs))
+  coordinates(obs) = ~lon.new+lat #having trouble with this, might work with euclid distances
+  
+  pi.snow.j = pi.snow[-(j),i] 
+  attach(pi.snow.j)
+  
+  #Fitted Spherical Variogram
+  coordinates(pi.snow.j) = ~lon.new+lat
+  initial=vgm(psill=val.snow[i,2],model= mod.snow,range=val.snow[i,3]) 
+  fit.vg=fit.variogram(vg,initial,fit.method=2)
+
+#Kriging Predicion for data point i
+pred[j, i]=krige(pi.snow.j~1, pi.snow.j,obs, model=fit.vg)$var1.pred
+}
+
 #Thin plate spline 
-#compare krig & thin plate spline
+#do this in loop for each ptype
+xy = cbind(lon.new,lat) 
+spline=Tps(xy,array(pi.snow[,i]),lambda=0.15)
+pred.snow = predict(spline)
+abs(sum(pred.snow - pi.snow[,i])) #just checking how far off it is
+
+
+#compare krig & thin plate spline: use predictions in main code
 #go through and check probabilities (> 0, sum =1)
 
 
