@@ -185,8 +185,12 @@ WRSS.nug=function(thetas,func,vg){
 #can loop through length(model.list) to choose type
 choose.model= function(smvg,initial.vals, nug){
   initial.vals.nug = c(nug, initial.vals)
-  model.list=c("linear", "power", "linear bound","circular","spherical" ,"rational quadratic", "exponential", "gaussian", "wave")
-  model.list.nug=c("linear", "power", "linear bound","circular","spherical" ,"rational quadratic", "exponential", "gaussian", "wave")
+  model.list=c("linear", "power","linear bound","circular","spherical" ,"rational quadratic", "exponential", "gaussian", "wave")
+  model.list.nug=c("linear", "power","linear bound","circular","spherical" ,"rational quadratic", "exponential", "gaussian", "wave")
+  model.names=c("Lin","Pow","Lin","Cir","Sph","Pen","Exp","Gau","Per")
+  #model.list=c("linear", "power","white","linear bound","circular","spherical" ,"rational quadratic", "exponential", "gaussian", "wave")
+  #model.list.nug=c("linear", "power", "white","linear bound","circular","spherical" ,"rational quadratic", "exponential", "gaussian", "wave")
+  #model.names=c("Lin","Pow","Lin,"Lin","Cir","Sph","Pen","Exp","Gau","Per")
   
   no.nug=FALSE
   BIC=array()
@@ -213,21 +217,29 @@ choose.model= function(smvg,initial.vals, nug){
   min.bic = min(BIC)
   min.bic.nug=min(BIC.nug)
   min.ind=which.min(c(min.bic,min.bic.nug))
+  
   if(min.ind==1){
     no.nug = TRUE
     best.BIC = min.bic
-    model = model.list[which.min(BIC)]
+    nug=0
+    model=model.list[which.min(BIC)]
+    mod.name = model.names[which.min(BIC)]
     param=params[which.min(BIC),]
-    best.model=as.matrix(c(model,0,param,best.BIC,no.nug))
+    best.model=as.matrix(c(model,nug,param,best.BIC,no.nug,mod.name))
+    #rownames(best.model)= c("model","range", "sill","BIC","no nug","mod name")
   } else {
     no.nug = FALSE
     best.BIC = min.bic.nug
-    model = model.list.nug[which.min(BIC.nug)]
+    model=model.list.nug[which.min(BIC)]
+    mod.name = model.names[which.min(BIC.nug)]
     param=params.nug[which.min(BIC.nug),]
-    best.model=as.matrix(c(model,param,best.BIC,no.nug))
-}
+    best.model=as.matrix(c(model,param,best.BIC,no.nug,mod.name))
+    #rownames(best.model)= c("model","nug","range", "sill","BIC","no nug","mod name")
+    }
 
-  row.names(best.model)= c("model","nug","range", "sill","BIC","no nug")
+  rownames(best.model)= c("model","nug","sill", "range","BIC","no nug","mod name")
+  
+  
   return(best.model)
 }
 #choose.model(vg.snow,initial.values, nugget)
