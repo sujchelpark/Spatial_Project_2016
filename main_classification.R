@@ -1,5 +1,5 @@
 rm(list = ls())
-setwd("Z:/Practicum/HW4")
+#setwd("Z:/Practicum/HW4")
 time <- proc.time()
 load("predictors.Rdata")
 library(gstat)
@@ -7,6 +7,8 @@ library(fields)
 library(maps)
 library(mvtnorm)
 library(base)
+library(car)
+
 #time: hours = 6.35
 #Only looking at the first 16 temperature levels, i.e. Twb.prof[,1:16]
 
@@ -16,35 +18,46 @@ library(base)
 ##Split up by ptype, station, and month
 #######################################
 months = as.numeric(substr(dates,5,6))
-pi.snow = matrix(nrow = 551, ncol = 9)
-pi.rain = matrix(nrow = 551, ncol = 9)
-pi.ip = matrix(nrow = 551, ncol = 9)
-pi.fzra = matrix(nrow = 551, ncol = 9)
 
-for(i in 1:551){ 
-  #i = station
-  station.indicies = which(station.ind == i) #indices of station i
-  
-  for(j in 1:length(unique(months))){ 
-    #j = month
-    
-    m = sort(unique(months))[j]
-    month.ind = which(months == m) 
-    month.indicies = which(date.ind%in%month.ind)
-    total.month.station = intersect(month.indicies, station.indicies)
-    
-    
-    snow.indicies = which(ptype[total.month.station] == "SN")
-    rain.indicies = which(ptype[total.month.station] == "RA")
-    ip.indicies = which(ptype[total.month.station] == "IP")
-    fzra.indicies = which(ptype[total.month.station] == "FZRA")
-    
-    pi.snow[i,j] = (length(snow.indicies))/length(total.month.station)
-    pi.rain[i,j] = (length(rain.indicies))/length(total.month.station)
-    pi.ip[i,j] = (length(ip.indicies))/length(total.month.station)
-    pi.fzra[i,j] = (length(fzra.indicies))/length(total.month.station)
-  }
-}
+# pi.snow=read.table(file="Tables/LOOCV_snow.txt")
+# pi.rain=read.table(file="Tables/LOOCV_rain.txt")
+# pi.ip=read.table(file="Tables/LOOCV_ip.txt")
+# pi.fzra=read.table(file="Tables/LOOCV_fzra.txt")
+
+pi.snow=read.table(file="Tables/TPS_snow.txt")
+pi.rain=read.table(file="Tables/TPS_rain.txt")
+pi.ip=read.table(file="Tables/TPS_ip.txt")
+pi.fzra=read.table(file="Tables/TPS_fzra.txt")
+
+# pi.snow = matrix(nrow = 551, ncol = 9)
+# pi.rain = matrix(nrow = 551, ncol = 9)
+# pi.ip = matrix(nrow = 551, ncol = 9)
+# pi.fzra = matrix(nrow = 551, ncol = 9)
+# 
+# for(i in 1:551){ 
+#   #i = station
+#   station.indicies = which(station.ind == i) #indices of station i
+#   
+#   for(j in 1:length(unique(months))){ 
+#     #j = month
+#     
+#     m = sort(unique(months))[j]
+#     month.ind = which(months == m) 
+#     month.indicies = which(date.ind%in%month.ind)
+#     total.month.station = intersect(month.indicies, station.indicies)
+#     
+#     
+#     snow.indicies = which(ptype[total.month.station] == "SN")
+#     rain.indicies = which(ptype[total.month.station] == "RA")
+#     ip.indicies = which(ptype[total.month.station] == "IP")
+#     fzra.indicies = which(ptype[total.month.station] == "FZRA")
+#     
+#     pi.snow[i,j] = (length(snow.indicies))/length(total.month.station)
+#     pi.rain[i,j] = (length(rain.indicies))/length(total.month.station)
+#     pi.ip[i,j] = (length(ip.indicies))/length(total.month.station)
+#     pi.fzra[i,j] = (length(fzra.indicies))/length(total.month.station)
+#   }
+# }
 
 #############################
 #plot the probabilities for each type and month
@@ -191,13 +204,13 @@ correct.class.tot = array()
 short.date = substr(dates, 1, 6)
 
 #For Regularizing Sigma
-#ab = c(1,10)
-#ab.all = matrix(0,nrow = 12, ncol = 2)
-#scale = c(0.1, 30)
+ab = c(1,10)
+ab.all = matrix(0,nrow = 12, ncol = 2)
+scale = c(0.1, 30)
 
-ab.all <- read.table("ab_vals2.txt")
-a <- ab.all$V1
-b <- ab.all$V2
+# ab.all <- read.table("ab_vals2.txt")
+# a <- ab.all$V1
+# b <- ab.all$V2
 
 
 for(i in 1:12){
@@ -265,8 +278,8 @@ for(i in 1:12){
    test.temp = Twb.prof[obs.indicies.test,1:16]
    test.type = ptype[obs.indicies.test]
 
-   # ab = optim(ab, ab.BSS, control = list(parscale = scale))$par
-   # ab.all[i,] = ab
+   ab = optim(ab, ab.BSS, control = list(parscale = scale))$par
+   ab.all[i,] = ab
 
    print(i)
   #############################################
@@ -369,7 +382,7 @@ accuracy = sum(correct.class.tot, na.rm = T)/sum(n.test) #0.942133
 # freq.ip = sum(class.freq.tot.ip)/sum(n.test)
 # freq.fzra = sum(class.freq.tot.fzra)/sum(n.test)
 
-#write.table(ab.all, file = "ab_vals2.txt")
+write.table(ab.all, file = "Tables/ab_vals2.txt")
 
 ################
 #Investigate MVN 
@@ -414,3 +427,8 @@ accuracy = sum(correct.class.tot, na.rm = T)/sum(n.test) #0.942133
 # plot(fzra.train[,1], fzra.train[,16], xlab = "first level", ylab = "sixteenth level", main = "Freezing Rain at Two Levels, Training 1")
 
 print(proc.time() - time)
+BS
+BSS
+BS.ref
+accuracy
+#ab.all

@@ -346,3 +346,30 @@ plot.smvg.nug.model=function(vg,param,model,new.h,main){
   plot(vg[,2],vg[,3],pch=19,col=1,xlab="h",ylab=expression(paste("Estimated ",gamma(h))), main=title)
   lines(new.h,new,lwd=3)
 }
+
+
+fix.probs = function(probs){
+  new = probs
+  if(max(probs)>=1){new=probs/max(probs)}
+  if(min(probs)<=0){new=probs-min(probs)}
+  new = new/sum(new) 
+  return(new)
+}
+
+reflect = function(vector){
+  temp = array(273.15,dim=length(vector))
+  
+  new1=vector-temp
+  new2=-new1
+  new3=new2+temp
+  
+}
+
+reflect.rev = function(vector,power){
+  temp = array(273.15^power,dim=length(vector))
+  
+  new1=vector-temp
+  new2=-new1
+  new3=new2+temp
+  return(new3)
+}
