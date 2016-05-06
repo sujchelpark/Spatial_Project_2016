@@ -7,7 +7,7 @@ library(gstat)
 library(fields)
 library(maps)
 library(mvtnorm)
-library(base)
+#library(base)
 library(car)
 library(sn)
 #time: hours = 6.35
@@ -308,30 +308,34 @@ for(i in 1:12){
   #################################
   ############ PELLETS ############
   #################################
+  #print("IP")
+  
   ip.train = train.temp[train.type == "IP",]
   xbar.ip[,i] = apply(ip.train, 2, mean)
   
-  tset = ip.train
-  
-  pm=matrix(nrow=16,ncol=4)
-  colnames(pm)=c('xi','omega','alpha','nu')
-  
-  #lines(x.seq,dnorm(x.seq,i.mean,i.sd),col=2,lwd=2)
-  par(mfrow=c(4,4))
-  for(k in 2:16){
-    #hist(tset[,k],breaks="FD",main=paste("Level", k, sep=" "),freq=F)
-    st.i=selm(tset[,k]~1,family="ST")
-    pm[k,]=st.i@param$dp
-
-    #lines(x.seq,dst(x.seq,dp=pm[k,]),col=4,lwd=2)
-    #sn.i=selm(tset[,k]~1,family="SN")
-    #pm=sn.i@param$dp
-    #lines(x.seq,dsn(x.seq,dp=pm),col=5,lwd=2)
-  }
-  pm.ip=pm
-  colnames(pm.ip)=c('xi','omega','alpha','nu')
-  
-  
+#   if(i > 2){
+#   tset = ip.train
+#   
+#   pm=matrix(nrow=16,ncol=4)
+#   colnames(pm)=c('xi','omega','alpha','nu')
+#   
+#   #lines(x.seq,dn2 orm(x.seq,i.mean,i.sd),col=2,lwd=2)
+#   #par(mfrow=c(4,4))
+#   for(k in 1:16){
+#     #hist(tset[,k],breaks="FD",main=paste("Level", k, sep=" "),freq=F)
+#     st.i=selm(tset[,k]~1,family="ST")
+#     pm[k,]=st.i@param$dp
+# 
+#     #lines(x.seq,dst(x.seq,dp=pm[k,]),col=4,lwd=2)
+#     #sn.i=selm(tset[,k]~1,family="SN")
+#     #pm=sn.i@param$dp
+#     #lines(x.seq,dsn(x.seq,dp=pm),col=5,lwd=2)
+#   }
+#   pm.ip=pm
+#   colnames(pm.ip)=c('xi','omega','alpha','nu')
+#   }
+#   
+  #pm.ip
   
   
   ################################
@@ -368,7 +372,8 @@ for(i in 1:12){
   ################################### 
   sigma.snow[[i]] = cov(snow.train) 
   #sigma.rain[[i]] = cov(rain.train) 
-  if(i==1){sigma.ip = cov(ip.train) }
+  #if(i==1&i==2){sigma.ip = cov(ip.train) }
+  sigma.ip[[i]]=cov(ip.train)
   #sigma.fzra[[i]] = cov(fzra.train) 
   
   ##################################
@@ -430,17 +435,17 @@ for(i in 1:12){
   
   for(j in 1:n.test[i]){
     #j is the indicie of observation in testing set
-    if(i==1){
+    #if(i==1 & i==2){
       phi.snow = dmvnorm(test.temp[j,], mean = xbar.snow[,i], sigma = sigma.snow[[i]])
-      phi.rain = dmst(test.temp[j,],dp=pm.rain)
-      phi.ip = dmvnorm(test.temp[j,],mean=xbar.ip[,i],sigma = sigma.ip)
-      phi.fzra = dmst(test.temp[j,],dp=pm.ip)
-    }else{
-      phi.snow = dmvnorm(test.temp[j,], mean = xbar.snow[,i], sigma = sigma.snow[[i]])
-      phi.rain = dmst(test.temp[j,],dp=pm.rain)
-      phi.ip = dmst(test.temp[j,],dp=pm.ip)
-      phi.fzra = dmst(test.temp[j,],dp=pm.ip)
-    }
+      phi.rain = dmst(test.temp[j,],dp=pm.rain[j,])
+      phi.ip = dmvnorm(test.temp[j,],mean=xbar.ip[,i],sigma = sigma.ip[[i]])
+      phi.fzra = dmst(test.temp[j,],dp=pm.fzra[j,])
+#     }else{
+#       phi.snow = dmvnorm(test.temp[j,], mean = xbar.snow[,i], sigma = sigma.snow[[i]])
+#       phi.rain = dmst(test.temp[j,],dp=pm.rain[j,])
+#       phi.ip = dmst(test.temp[j,],dp=pm.ip[j,])
+#       phi.fzra = dmst(test.temp[j,],dp=pm.fzra[j,])
+#     }
 #     phi.rain = dmvnorm(test.temp[j,], mean = xbar.rain[,i], sigma = sigma.rain[[i]])
 #     phi.ip = dmvnorm(test.temp[j,], mean = xbar.ip[,i], sigma = sigma.ip[[i]])
 #     phi.fzra = dmvnorm(test.temp[j,], mean = xbar.fzra[,i], sigma = sigma.fzra[[i]])
