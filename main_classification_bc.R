@@ -1,5 +1,5 @@
 rm(list = ls())
-#setwd("Z:/Practicum/HW4")
+setwd("Z:/Practicum/HW4")
 time <- proc.time()
 load("predictors.Rdata")
 library(gstat)
@@ -113,9 +113,9 @@ ab.BSS = function(param){
   
   for(j in 1:n.train[i]){
     
-    phi.snow = dmvnorm(snow.train.norm[j,], mean = xbar.snow[,i], sigma = sigma.reg.snow[[i]])
+    phi.snow = dmvnorm(snow.train[j,], mean = xbar.snow[,i], sigma = sigma.reg.snow[[i]])
     phi.rain = dmvnorm(train.temp[j,], mean = xbar.rain[,i], sigma = sigma.reg.rain[[i]])
-    phi.ip = dmvnorm(ip.train.norm[j,], mean = xbar.ip[,i], sigma = sigma.reg.ip[[i]])
+    phi.ip = dmvnorm(ip.train[j,], mean = xbar.ip[,i], sigma = sigma.reg.ip[[i]])
     phi.fzra = dmvnorm(train.temp[j,], mean = xbar.fzra[,i], sigma = sigma.reg.fzra[[i]])
     
     #get station and month for this observation
@@ -241,28 +241,30 @@ for(i in 1:12){
   ##############################
   
   snow.train = train.temp[train.type == "SN",]
-    
-    pow.snow=apply(snow.train,2,powerTransform)
-    for(j in 1:16){
-      powers.snow[j,i]=pow.snow[[j]]$lambda
-    }
-    powers.snow[,i]
-    snow.train.norm = bcPower(snow.train,lambda=powers.snow[,i])
-    xbar.snow[,i] = apply(snow.train.norm, 2, mean)
+  
+  pow.snow=apply(snow.train,2,powerTransform)
+  for(j in 1:16){
+    powers.snow[j,i]=pow.snow[[j]]$lambda
+  }
+  powers.snow[,i]
+  snow.train.norm = bcPower(snow.train,lambda=powers.snow[,i])
+  xbar.snow[,i] = apply(snow.train.norm, 2, mean)
+  snow.train = apply(train.temp,2,function(x) x^powers.snow[,i])
   
   ##############################
   ############ RAIN ############
   ##############################
   rain.train = train.temp[train.type == "RA",]
-  xbar.rain[,i] = apply(rain.train, 2, mean)
+  
   #   
-  #   rain.train2=apply(rain.train,2,reflect)
-  #   pow.rain=apply(rain.train2,2,powerTransform)
-  #   for(j in 1:16){
-  #     powers.rain[j,i]=pow.rain[[j]]$lambda
-  #   }
-  #   powers.rain[,i]
-  #   rain.train=apply(rain.train2,2,reflect)
+  # rain.train2=apply(rain.train,2,reflect)
+    # pow.rain=apply(rain.train,2,powerTransform)
+    # for(j in 1:16){
+    #   powers.rain[j,i]=pow.rain[[j]]$lambda
+    # }
+    # powers.rain[,i]
+    # rain.train=apply(rain.train2,2,reflect)
+    xbar.rain[,i] = apply(rain.train, 2, mean)
   #   #powers.rain[,i]=1/powers.rain[,i]
   #   #powers.rain[,i]= powers.snow[,i]
   #   #rain.train.norm=apply(rain.train,2,reflect,power=powers.rain[,i])
@@ -275,16 +277,16 @@ for(i in 1:12){
   ############ PELLETS ############
   #################################
   ip.train = train.temp[train.type == "IP",]
- 
   
-    pow.ip=apply(ip.train,2,powerTransform)
-    for(j in 1:16){
-      powers.ip[j,i]=pow.ip[[j]]$lambda
-    }
-    powers.ip[,i]
-    ip.train.norm = bcPower(ip.train,lambda=powers.ip[,i])
-    xbar.ip[,i] = apply(ip.train.norm, 2, mean)
   
+  pow.ip=apply(ip.train,2,powerTransform)
+  for(j in 1:16){
+    powers.ip[j,i]=pow.ip[[j]]$lambda
+  }
+  powers.ip[,i]
+  ip.train.norm = bcPower(ip.train,lambda=powers.ip[,i])
+  xbar.ip[,i] = apply(ip.train.norm, 2, mean)
+  ip.train = apply(train.temp,2,function(x) x^powers.ip[,i])
   
   ################################
   ############ FREEZE ############
@@ -445,7 +447,7 @@ accuracy = sum(correct.class.tot, na.rm = T)/sum(n.test) #0.942133
 # freq.ip = sum(class.freq.tot.ip)/sum(n.test)
 # freq.fzra = sum(class.freq.tot.fzra)/sum(n.test)
 
-write.table(ab.all, file = "Results/ab_vals2.txt")
+write.table(ab.all, file = "ab_vals3.txt")
 
 ################
 #Investigate MVN 
